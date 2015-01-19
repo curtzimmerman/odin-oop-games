@@ -50,6 +50,7 @@ class TicTacToe
 		end
 		return flag
 	end
+	
 	def turn(player)
 		input = ""
 		while (input_valid?(input) == false) && (@chosen.include?(input) == false)
