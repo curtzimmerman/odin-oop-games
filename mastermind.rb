@@ -2,20 +2,18 @@ module Mastermind
 	class Game
 		attr_accessor :codebreaker, :codesetter, :board, :num_turn
 		def initialize ( player_1, player_2 )
+			puts "--Mastermind--"
 			@codebreaker = player_1
 			@codesetter = player_2
-			@board = Board.new
+			@board = Board.new(self)
 			@num_turn = 0
-			@gametype = 0
 			begin_game
 		end
 
 		def begin_game
-			puts "--Mastermind--"
-			board.set_code(codesetter)
-			puts board.show_code
-			until board.code.inspect == board.grid[num_turn-1].inspect || num_turn >= 12
-				board.enter_guess(codebreaker, num_turn)
+			loop do
+				board.start_turn
+				return if board.game_over?
 				self.num_turn += 1
 			end
 		end		
@@ -23,33 +21,82 @@ module Mastermind
 	end
 
 	class Board
-		attr_accessor :grid, :code
-		def initialize
-			@grid = Array.new(12) { Row.new() }
-			@code = Row.new()
+		attr_accessor :grid, :code, :game
+		def initialize ( game )
+			@grid = Array.new(12) { Row.new }
+			@code = set_code
+			@game = game
 		end
 
-		def set_code ( player )
-			puts "Code to be broken:"
+		def set_code
 			puts valid_colors
-			new_code = []
-			code.pegs.each_with_index do |peg, index|
-				print "Enter color choice for spot #{index+1}: "
-				code.pegs[index] = gets.chomp
-			end
+			new_code = Row.new ({
+				:peg1 => GuessPeg.new(),
+				:peg2 => GuessPeg.new(),
+				:peg3 => GuessPeg.new(),
+				:peg4 => GuessPeg.new()
+				})
+			puts new_code.show
+			return new_code
 		end
 
-		def show_code
-			code.show
+		def start_turn
+			puts "Turn #{turn+1}!"
+			grid[turn] = Row.new({
+				:peg1 => query_guess( 1 ),
+				:peg2 => query_guess( 2 ),
+				:peg3 => query_guess( 3 ),
+				:peg4 => query_guess( 4 )
+				})
+			puts grid[turn].show
+			self.show_clues
 		end
 
-		def enter_guess ( player, num_turn )
-			puts "Turn #{num_turn+1}: \n" + valid_colors
-			grid[num_turn].pegs.each_with_index do |peg, index|
-				print "Enter color choice for spot #{index+1}: "
-				grid[num_turn].pegs[index] = gets.chomp
-			end
+		def query_guess ( peg_num )
+			puts "Enter color for position #{peg_num}"
+			color = gets.chomp
+			GuessPeg.new(color: color)
 		end
+
+		def show_clues
+			correct_color, correct_position = 0,0
+			code.pegs.each_with_index do |code_peg, index|
+				if code_peg.color == grid[turn].pegs[index].color
+					grid[turn].pegs[index].correct_position = true
+					correct_position += 1
+					next
+				elsif code.pegs_colors.include?(grid[turn].pegs[index].color)
+					correct_color += 1 
+				end
+			end
+			puts "You have #{correct_position} pegs with the correct color AND position."
+			puts "You have #{correct_color} pegs with the correct color (but incorrect position)!"
+		end
+
+		def winner?
+			code.equal?(grid[turn])
+		end
+
+		def out_of_turns?
+			turn == 11 #for 12 turns
+		end
+
+		def game_over?
+			if winner?
+				puts "You broke the code!"
+				return true
+			end
+			if out_of_turns?
+				puts "You ran out of turns."
+				return true
+			end
+			return false
+		end
+
+		def turn
+			game.num_turn
+		end
+
 
 		def valid_colors
 			"(valid colors: blue, red, yellow, green, purple, orange)"
@@ -57,20 +104,74 @@ module Mastermind
 	end
 
 	class Row
-		attr_accessor :pegs
+		attr_accessor :peg1, :peg2, :peg3, :peg4, :pegs
 		def initialize( args = {} )
-			@pegs = [args.fetch(:peg1, " "), args.fetch(:peg2, " "), args.fetch(:peg3, " "), args.fetch(:peg4, " ")]
+			@peg1 = args.fetch(:peg1, default_peg)
+			@peg2 = args.fetch(:peg2, default_peg)
+			@peg3 = args.fetch(:peg3, default_peg)
+			@peg4 = args.fetch(:peg4, default_peg)
+		end
+
+		def pegs
+			[peg1, peg2, peg3, peg4]
+		end
+
+		def pegs_colors
+			[peg1.color, peg2.color, peg3.color, peg4.color]
 		end
 
 		def show
-			[pegs[0], pegs[1], pegs[2], pegs[3]].inspect
+			"#{peg1.color} | #{peg2.color} | #{peg3.color} | #{peg4.color}"
 		end
 
-		def equal?
+		def equal?(test_row)
+			flag = true
+			test_row.pegs.each_with_index do |test_peg, index|
+				unless test_peg.color == self.pegs[index].color
+					flag = false
+				end
+			end
+			return flag
+		end
 
+		def default_peg
+			GuessPeg.new(color: :blank)
+		end
+
+	end
+
+	class Peg
+	end
+
+	class GuessPeg < Peg
+		attr_accessor :color, :correct_position
+		def initialize( args = {} )
+			@color = args.fetch(:color, random_color)
+			@correct_position = false
+		end
+
+		def color
+			@color.to_s
+		end
+
+		def valid_colors
+			["blue", "red", "yellow", "green", "purple", "orange"]
+		end
+
+		private
+
+		def random_color
+			@color = valid_colors[random_number]
+		end
+
+		def random_number
+			Random.rand(0..5)
 		end
 	end
 
+	class CluePeg < Peg
+
+	end
 
 	class Player
 
