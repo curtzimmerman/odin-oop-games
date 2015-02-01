@@ -1,0 +1,25 @@
+--- !ruby/object:Hangman::Game
+word_to_guess: melioration
+status:
+- _
+- _
+- _
+- _
+- _
+- r
+- a
+- _
+- _
+- _
+- n
+remaining_turns: 1
+incorrect_guesses:
+- s
+- v
+- b
+- d
+- f
+- g
+- h
+- j
+- k
