@@ -1,25 +1,35 @@
 --- !ruby/object:Hangman::Game
-word_to_guess: melioration
+word_to_guess: gelding
 status:
+- g
 - _
 - _
+- d
 - _
 - _
-- _
-- r
+- g
+remaining_turns: 6
+incorrect_guesses:
 - a
+- r
+- c
+- b
+save_game_name: 2015-02-02 02:45:47 -0500 --- g__d__g
+--- !ruby/object:Hangman::Game
+word_to_guess: gelding
+status:
+- g
+- e
 - _
-- _
+- d
 - _
 - n
-remaining_turns: 1
-incorrect_guesses:
-- s
-- v
-- b
-- d
-- f
 - g
-- h
-- j
-- k
+remaining_turns: 5
+incorrect_guesses:
+- a
+- r
+- c
+- b
+- f
+save_game_name: 2015-02-02 02:46:28 -0500 --- ge_d_ng

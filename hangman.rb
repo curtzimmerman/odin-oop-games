@@ -1,12 +1,13 @@
 module Hangman
 	require 'yaml'
 	class Game
-		attr_accessor :word_to_guess, :status, :remaining_turns, :incorrect_guesses
+		attr_accessor :word_to_guess, :status, :remaining_turns, :incorrect_guesses, :save_game_name
 		def initialize ( args = {} )
 			@word_to_guess = args.fetch(:word_to_guess, get_word_to_guess)
 			@status = args.fetch(:status, default_status)
 			@remaining_turns = args.fetch(:remaining_turns, 10)
 			@incorrect_guesses = args.fetch(:incorrect_guesses, [])
+			@save_game_name = ""
 			begin_game
 		end
 
@@ -89,22 +90,36 @@ module Hangman
 		end
 
 		def save_game
-			file_name = File.open("save_data.yaml", "w")
+			self.save_game_name = "#{Time.now} --- #{status.join}"
+			file_name = File.open("save_data.yaml", "a")
 			YAML.dump(self, file_name)
 			file_name.close
 		end
 
 		def load_game
-			file_name = File.open("save_data.yaml", "r")
-			puts "Choose game to load: "
-			loaded_game = YAML.load(file_name)
+			puts "Enter number for save game: "
+			File.open("save_data.yaml", "r") do |yaml_file|
+				count = 1
+				YAML::load_documents(yaml_file) do |doc|
+					puts "#{count}: #{doc.save_game_name}"
+					count += 1
+				end
+			end
+
+			loaded_game_num = gets.chomp
+			yaml_doc = YAML::load_stream(File.open("save_data.yaml", "r+"))
+			loaded_game = yaml_doc[loaded_game_num.to_i - 1]
+
 			loaded_game_hash = {
 				:word_to_guess => loaded_game.word_to_guess,
 				:status => loaded_game.status,	
 				:remaining_turns => loaded_game.remaining_turns,
 				:incorrect_guesses => loaded_game.incorrect_guesses
 			}
-			initialize(loaded_game_hash)
+
+			yaml_doc[loaded_game_num.to_i - 1] = ""
+			YAML::dump_stream(yaml_doc) 			#not working correctly
+			Hangman::Game.new(loaded_game_hash)
 		end
 
 		def begin_game
