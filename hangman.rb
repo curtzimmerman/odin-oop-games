@@ -96,30 +96,45 @@ module Hangman
 			file_name.close
 		end
 
-		def load_game
-			puts "Enter number for save game: "
-			File.open("save_data.yaml", "r") do |yaml_file|
-				count = 1
-				YAML::load_documents(yaml_file) do |doc|
-					puts "#{count}: #{doc.save_game_name}"
-					count += 1
-				end
-			end
-
-			loaded_game_num = gets.chomp
-			yaml_doc = YAML::load_stream(File.open("save_data.yaml", "r+"))
-			loaded_game = yaml_doc[loaded_game_num.to_i - 1]
-
+		def get_init_hash ( hangman_object )
 			loaded_game_hash = {
-				:word_to_guess => loaded_game.word_to_guess,
-				:status => loaded_game.status,	
-				:remaining_turns => loaded_game.remaining_turns,
-				:incorrect_guesses => loaded_game.incorrect_guesses
+				:word_to_guess => hangman_object.word_to_guess,
+				:status => hangman_object.status,	
+				:remaining_turns => hangman_object.remaining_turns,
+				:incorrect_guesses => hangman_object.incorrect_guesses
 			}
+		end
 
-			yaml_doc[loaded_game_num.to_i - 1] = ""
-			YAML::dump_stream(yaml_doc) 			#not working correctly
-			Hangman::Game.new(loaded_game_hash)
+		def load_game
+			#yaml_doc is an array of hangman objects
+			yaml_doc = YAML::load_stream(File.open("save_data.yaml", "r+"))
+
+			if yaml_doc.length == 0
+				puts "no saved games, continuing game"
+				Hangman::Game.new(get_init_hash(self))
+			else
+				yaml_doc.each_with_index do |doc, index|
+					puts "#{index + 1}: #{doc.save_game_name}"
+				end
+
+				puts "Enter number for save game: "
+
+				#choose one from the array, delete it from the list of savegames
+				loaded_game_num = gets.chomp.to_i
+				loaded_game = yaml_doc[loaded_game_num - 1]
+				yaml_doc.delete_at(loaded_game_num - 1)
+
+				#delete and recreate save_data.yaml with the remaining saved games
+				File.delete("save_data.yaml")
+				File.open("save_data.yaml", "w") do |f|
+					yaml_doc.each do |doc|
+						f.puts doc.to_yaml
+					end
+				end
+
+					#begin loaded game
+				Hangman::Game.new(get_init_hash(loaded_game))
+			end
 		end
 
 		def begin_game

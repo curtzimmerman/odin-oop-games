@@ -1,35 +1,42 @@
 --- !ruby/object:Hangman::Game
-word_to_guess: gelding
+word_to_guess: chongqing
 status:
-- g
 - _
 - _
-- d
-- _
-- _
-- g
-remaining_turns: 6
-incorrect_guesses:
-- a
-- r
-- c
-- b
-save_game_name: 2015-02-02 02:45:47 -0500 --- g__d__g
---- !ruby/object:Hangman::Game
-word_to_guess: gelding
-status:
-- g
-- e
-- _
-- d
 - _
 - n
-- g
+- _
+- _
+- _
+- n
+- _
 remaining_turns: 5
 incorrect_guesses:
 - a
-- r
-- c
+- e
 - b
+- m
+- d
+save_game_name: 2015-02-03 01:01:43 -0500 --- ___n___n_
+--- !ruby/object:Hangman::Game
+word_to_guess: disjointedly
+status:
+- _
+- _
+- _
+- _
+- _
+- _
+- _
+- t
+- e
+- _
+- _
+- y
+remaining_turns: 6
+incorrect_guesses:
+- a
 - f
-save_game_name: 2015-02-02 02:46:28 -0500 --- ge_d_ng
+- v
+- r
+save_game_name: 2015-02-03 01:03:18 -0500 --- _______te__y
